@@ -1,0 +1,9 @@
+.jqm-wrapper{
+    position: relative;
+}
+
+.jqm-hovers{
+    position: absolute;
+    top: 0;
+    left: 0;
+}
