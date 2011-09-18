@@ -6,8 +6,20 @@
             strokeOpacity: 1.0,
             strokeWidth: 3,
             fillColor: '#ff0000',
-            fillOpacity: 0.5
+            fillOpacity: 0.5,
+            hoverRelated: true
         }
+
+
+        // define function 'trim' for old browsers
+        if(typeof(String.prototype.trim) === "undefined")
+        {
+            String.prototype.trim = function()
+            {
+                return String(this).replace(/^\s+|\s+$/g, '');
+            };
+        }
+
 
         return this.each(function(){
             var $image = $(this);
@@ -16,6 +28,8 @@
 
             var $map = $('map[name=' + $image.attr('usemap').substr(1) + ']');
 
+            // related objects
+            var $related_objects  = findAreasRelated($map.find('area'));
 
             var $wrapper = $('<div class="jqm-wrapper" />');
             $image.wrap($wrapper);
@@ -55,12 +69,36 @@
             $image.before($hover_canvas);
             $image.before($event_img);
 
-            $map.find('area').hover(areaHover, clearHoverCanvas);
+
+            //events
+            $map.find('area').hover(areaHover, areaUnhover);
             $map.find('area').click(areaClick);
+
+            // draw area when hover on related object
+            $related_objects.hover(function(){
+                var rels = $(this).attr('rel').split(',');
+                for(var rel_ind = 0; rel_ind < rels.length; rel_ind++){
+                    // check if rel is equal to area id, because rel="ar23" may match with [rel*=ar2]
+                    $map.find('#' + rels[rel_ind].trim()).each(function(){
+                        drawArea($(this), $hover_canvas[0]);
+                    })
+                }
+            }, clearHoverCanvas);
 
             function areaHover(e){
                 e.preventDefault();
                 drawArea($(this), $hover_canvas[0]);
+                if(options.hoverRelated){
+                    var $relates = findAreasRelated($(this));
+                    $relates.addClass('map-hover');
+                }
+            }
+
+            function areaUnhover(){
+                clearHoverCanvas();
+                if(options.hoverRelated){
+                    $related_objects.removeClass('map-hover');
+                }
             }
 
             function areaClick(e){
@@ -91,6 +129,25 @@
             function clearCanvas($canvas){
                 var context = $canvas.getContext('2d');
                 context.clearRect(0, 0, $canvas.width, $canvas.height);
+            }
+
+            function findAreasRelated($areas){
+                var result = $('');
+                $areas.each(function(){
+                    var $related = $('[rel*=' + $(this).attr('id') + ']'); // find objects with rel of areas ids
+                    if($related.length){
+                        $related.each(function(){
+                            var rels = $(this).attr('rel').split(',');
+                            for(var rel_ind = 0; rel_ind < rels.length; rel_ind++){
+                                // check if rel is equal to area id, because rel="ar23" may match with [rel*=ar2]
+                                if($map.find('#' + rels[rel_ind].trim()).length){
+                                    result = result.add($(this));
+                                }
+                            }
+                        })
+                    }
+                });
+                return result;
             }
 
             function hexR(h){
