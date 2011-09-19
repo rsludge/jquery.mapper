@@ -7,7 +7,8 @@
             strokeWidth: 3,
             fillColor: '#ff0000',
             fillOpacity: 0.5,
-            hoverRelated: true
+            hoverRelated: true,
+            allowSelect: true
         }
 
 
@@ -32,6 +33,9 @@
             var $related_objects  = findAreasRelated($map.find('area'));
 
             var $wrapper = $('<div class="jqm-wrapper" />');
+            $wrapper.css({
+                position: 'relative'
+            })
             $image.wrap($wrapper);
 
             // transparent image to catch events
@@ -51,6 +55,12 @@
 
             $hover_canvas.attr('width', $image.width());
             $hover_canvas.attr('height', $image.height());
+            $hover_canvas.css({
+                top: 0,
+                left: 0,
+                position: 'absolute'
+            })
+
 
             // set drawing style
             var context = $hover_canvas[0].getContext('2d');
@@ -102,7 +112,29 @@
             }
 
             function areaClick(e){
-                console.log('click worked');
+                if(options.allowSelect){
+                    e.preventDefault();
+                    clearHoverCanvas();
+
+                    var $select_canvas = $('canvas#select_canvas_' + $(this).index($map.find('area')));
+                    if(!$(this).hasClass('selected')){
+                        $(this).addClass('selected');
+                        if($select_canvas.length){
+                            drawArea($(this), $select_canvas[0]);
+                        }else{
+                            $select_canvas = $('<canvas class="select_canvas" id="select_canvas_' + $(this).index($map.find('area').selector) + '" />');
+                            $select_canvas.attr('width', $image.width());
+                            $select_canvas.attr('height', $image.height());
+                            $select_canvas.css({
+                                top: 0,
+                                left: 0,
+                                position: 'absolute'
+                            })
+                            $event_img.before($select_canvas);
+                            drawArea($(this), $select_canvas[0]);
+                        }
+                    }
+                }
             }
 
             function drawArea($area, $canvas){
