@@ -2,11 +2,20 @@
     $.fn.mapper = function(userOptions){
 
         var options = {
-            strokeColor: '#0000ff',
-            strokeOpacity: 1.0,
-            strokeWidth: 3,
-            fillColor: '#ff0000',
-            fillOpacity: 0.5,
+            hover:{
+                strokeColor: '#0000ff',
+                strokeOpacity: 1.0,
+                strokeWidth: 3,
+                fillColor: '#ff0000',
+                fillOpacity: 0.5
+            },
+            select:{
+                strokeColor: '#333333',
+                strokeOpacity: 1.0,
+                strokeWidth: 2,
+                fillColor: '#00ff00',
+                fillOpacity: 0.7
+            },
             hoverRelated: true,
             allowSelect: true
         }
@@ -61,21 +70,6 @@
                 position: 'absolute'
             })
 
-
-            // set drawing style
-            var context = $hover_canvas[0].getContext('2d');
-            context.fillStyle = "rgba(" + hexR(options.fillColor) + ", "
-                + hexG(options.fillColor) + ", "
-                + hexB(options.fillColor) + ", "
-                + options.fillOpacity + ")";
-
-            context.strokeStyle = "rgba(" + hexR(options.strokeColor) + ", "
-                + hexG(options.strokeColor) + ", "
-                + hexB(options.strokeColor) + ", "
-                + options.strokeOpacity + ")";
-
-            context.lineWidth = options.strokeWidth;
-
             $image.before($hover_canvas);
             $image.before($event_img);
 
@@ -90,14 +84,14 @@
                 for(var rel_ind = 0; rel_ind < rels.length; rel_ind++){
                     // check if rel is equal to area id, because rel="ar23" may match with [rel*=ar2]
                     $map.find('#' + rels[rel_ind].trim()).each(function(){
-                        drawArea($(this), $hover_canvas[0]);
+                        drawArea($(this), $hover_canvas);
                     })
                 }
             }, clearHoverCanvas);
 
             function areaHover(e){
                 e.preventDefault();
-                drawArea($(this), $hover_canvas[0]);
+                drawArea($(this), $hover_canvas);
                 if(options.hoverRelated){
                     var $relates = findAreasRelated($(this));
                     $relates.addClass('map-hover');
@@ -120,7 +114,7 @@
                     if(!$(this).hasClass('selected')){
                         $(this).addClass('selected');
                         if($select_canvas.length){
-                            drawArea($(this), $select_canvas[0]);
+                            drawArea($(this), $select_canvas);
                         }else{
                             $select_canvas = $('<canvas class="select_canvas" id="select_canvas_' + $(this).index($map.find('area').selector) + '" />');
                             $select_canvas.attr('width', $image.width());
@@ -131,14 +125,35 @@
                                 position: 'absolute'
                             })
                             $event_img.before($select_canvas);
-                            drawArea($(this), $select_canvas[0]);
+                            drawArea($(this), $select_canvas);
                         }
                     }
                 }
             }
 
             function drawArea($area, $canvas){
-                var context = $canvas.getContext('2d');
+                var context = $canvas[0].getContext('2d');
+                var graphic_options;
+
+                if($canvas.hasClass('jqm-hovers')){
+                    graphic_options = options.hover;
+                }else{
+                    graphic_options = options.select;
+                }
+
+                // set drawing style
+                context.fillStyle = "rgba(" + hexR(graphic_options.fillColor) + ", "
+                    + hexG(graphic_options.fillColor) + ", "
+                    + hexB(graphic_options.fillColor) + ", "
+                    + graphic_options.fillOpacity + ")";
+
+                context.strokeStyle = "rgba(" + hexR(graphic_options.strokeColor) + ", "
+                    + hexG(graphic_options.strokeColor) + ", "
+                    + hexB(graphic_options.strokeColor) + ", "
+                    + graphic_options.strokeOpacity + ")";
+
+                context.lineWidth = graphic_options.strokeWidth;
+
                 if($area.attr('shape').toLowerCase() == 'poly'){
                     var coords = $area.attr('coords').split(',');
                     context.beginPath();
