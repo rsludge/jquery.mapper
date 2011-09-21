@@ -17,7 +17,8 @@
                 fillOpacity: 0.7
             },
             hoverRelated: true,
-            allowSelect: true
+            allowSelect: true,
+            selectRelated: true
         }
 
 
@@ -89,12 +90,25 @@
                 }
             }, clearHoverCanvas);
 
+            // draw area when clickon related object
+            $related_objects.click(function(){
+                var rels = $(this).attr('rel').split(',');
+                for(var rel_ind = 0; rel_ind < rels.length; rel_ind++){
+                    // check if rel is equal to area id, because rel="ar23" may match with [rel*=ar2]
+                    $map.find('#' + rels[rel_ind].trim()).each(function(){
+                        areaClick.call($(this), undefined);
+                    })
+                }
+            })
+
             function areaHover(e){
-                e.preventDefault();
-                drawArea($(this), $hover_canvas);
-                if(options.hoverRelated){
-                    var $relates = findAreasRelated($(this));
-                    $relates.addClass('map-hover');
+                if(!$(this).hasClass('selected')){
+                    e.preventDefault();
+                    drawArea($(this), $hover_canvas);
+                    if(options.hoverRelated){
+                        var $relates = findAreasRelated($(this));
+                        $relates.addClass('map-hover');
+                    }
                 }
             }
 
@@ -107,10 +121,9 @@
 
             function areaClick(e){
                 if(options.allowSelect){
-                    e.preventDefault();
+                    if(e){e.preventDefault();}
                     clearHoverCanvas();
-
-                    var $select_canvas = $('canvas#select_canvas_' + $(this).index($map.find('area')));
+                    var $select_canvas = $('canvas#select_canvas_' + $(this).index($map.find('area').selector));
                     if(!$(this).hasClass('selected')){
                         $(this).addClass('selected');
                         if($select_canvas.length){
@@ -123,9 +136,22 @@
                                 top: 0,
                                 left: 0,
                                 position: 'absolute'
-                            })
+                            });
                             $event_img.before($select_canvas);
                             drawArea($(this), $select_canvas);
+                            if(options.selectRelated){
+                                var $relates = findAreasRelated($(this));
+console.log(2);
+                                $relates.addClass('map-select');
+                            }
+                        }
+                    }else{
+                        $(this).removeClass('selected');
+                        clearCanvas($select_canvas[0]);
+                        if(options.selectRelated){
+                            var $relates = findAreasRelated($(this));
+console.log(2);
+                            $relates.removeClass('map-select');
                         }
                     }
                 }

@@ -3,9 +3,9 @@
 This is jQuery plugin to highlight map areas.
 Inspired by:
 
-    mapper.js (http://www.netzgesta.de/mapper/)
+mapper.js (http://www.netzgesta.de/mapper/)
 
-    Lightmapper (http://www.codeproject.com/KB/scripting/Lightmapper.aspx)
+Lightmapper (http://www.codeproject.com/KB/scripting/Lightmapper.aspx)
 
 
 ## jQuery version
